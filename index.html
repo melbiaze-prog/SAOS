@@ -1,0 +1,1774 @@
+<!doctype html>
+<html lang="fr" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestionnaire Consultations Sommeil</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+        body {
+            box-sizing: border-box;
+        }
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .section {
+            display: none;
+        }
+        .section.active {
+            display: block;
+        }
+        @media print {
+            .no-print { display: none !important; }
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+ </head>
+ <body class="h-full bg-blue-50 font-sans">
+  <div class="min-h-full"><!-- Header -->
+   <header class="bg-blue-800 text-white shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 py-6">
+     <h1 id="app-title" class="text-3xl font-bold">Gestionnaire Consultations Sommeil</h1>
+     <p id="clinic-name" class="text-blue-200 mt-1">Centre du Sommeil - Pr ELBIAZE الأستاذ البياز</p>
+    </div>
+   </header><!-- Navigation -->
+   <nav class="bg-white shadow-sm border-b">
+    <div class="max-w-7xl mx-auto px-4">
+     <div class="flex space-x-8"><button onclick="showSection('nouvelle')" class="nav-btn py-4 px-2 border-b-2 border-blue-500 text-blue-600 font-medium"> Nouvelle Consultation </button> <button onclick="showSection('liste')" class="nav-btn py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700"> Liste des Patients </button> <button onclick="showSection('statistiques')" class="nav-btn py-4 px-2 border-b-2 border-transparent text-gray-500 hover:text-gray-700"> Statistiques </button>
+     </div>
+    </div>
+   </nav><!-- Main Content -->
+   <main class="max-w-7xl mx-auto px-4 py-8"><!-- Section Nouvelle Consultation -->
+    <div id="section-nouvelle" class="section active">
+     <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6">Nouvelle Consultation</h2>
+      <form id="consultation-form" class="space-y-6"><!-- Type de consultation -->
+       <div><label for="type-consultation" class="block text-sm font-medium text-gray-700 mb-2">Type de consultation</label> <select id="type-consultation" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> <option value="initiale">Consultation initiale</option> <option value="controle">Consultation de contrôle PPC</option> <option value="psg">Résultats PSG</option> </select>
+       </div><!-- Informations patient -->
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div><label for="patient-nom" class="block text-sm font-medium text-gray-700 mb-2">Nom du patient *</label> <input type="text" id="patient-nom" required class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div><label for="patient-prenom" class="block text-sm font-medium text-gray-700 mb-2">Prénom du patient *</label> <input type="text" id="patient-prenom" required class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+       </div>
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div><label for="patient-age" class="block text-sm font-medium text-gray-700 mb-2">Âge (années)</label> <input type="number" id="patient-age" min="0" max="120" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div class="relative"><label for="ville" class="block text-sm font-medium text-gray-700 mb-2">Ville</label> <input type="text" id="ville" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" autocomplete="off">
+         <div id="ville-suggestions" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1 max-h-40 overflow-y-auto hidden"></div>
+        </div>
+       </div>
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="relative"><label for="medecin-traitant" class="block text-sm font-medium text-gray-700 mb-2">Médecin traitant</label> <input type="text" id="medecin-traitant" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" autocomplete="off">
+         <div id="medecin-suggestions" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg mt-1 max-h-40 overflow-y-auto hidden"></div>
+        </div>
+        <div></div>
+       </div><!-- Mesures anthropométriques -->
+       <div class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Mesures anthropométriques</h3><!-- Sexe -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+         <div><label for="sexe" class="block text-sm font-medium text-gray-700 mb-2">Sexe</label> <select id="sexe" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> <option value="">Sélectionner</option> <option value="M">Masculin</option> <option value="F">Féminin</option> </select>
+         </div>
+         <div></div>
+        </div><!-- Poids et Taille -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+         <div><label for="poids" class="block text-sm font-medium text-gray-700 mb-2">Poids (kg)</label> <input type="number" id="poids" step="0.1" min="0" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+         </div>
+         <div><label for="taille" class="block text-sm font-medium text-gray-700 mb-2">Taille (cm)</label> <input type="number" id="taille" step="1" min="0" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+         </div>
+        </div><!-- IMC et Tour de cou -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+         <div><label for="imc" class="block text-sm font-medium text-gray-700 mb-2">IMC (kg/m²)</label> <input type="number" id="imc" step="0.1" readonly class="w-full p-3 border border-gray-300 rounded-md bg-yellow-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <p class="text-xs text-gray-500 mt-1">Calculé automatiquement</p>
+         </div>
+         <div><label for="tour-cou" class="block text-sm font-medium text-gray-700 mb-2">Tour de cou (cm)</label> <input type="number" id="tour-cou" step="0.1" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          <p id="tour-cou-estimation" class="text-xs text-gray-500 mt-1" style="display: none;">Estimation automatique</p>
+         </div>
+        </div>
+       </div><!-- Plaintes et comorbidités -->
+       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div><label for="plaintes" class="block text-sm font-medium text-gray-700 mb-2">Plaintes principales</label>
+         <div class="space-y-2">
+          <div class="grid grid-cols-2 gap-2"><label class="flex items-center text-sm"> <input type="checkbox" class="plainte-checkbox mr-2" data-plainte="Ronflements"> Ronflements </label> <label class="flex items-center text-sm"> <input type="checkbox" class="plainte-checkbox mr-2" data-plainte="Apnées observées"> Apnées observées </label> <label class="flex items-center text-sm"> <input type="checkbox" class="plainte-checkbox mr-2" data-plainte="Somnolence diurne"> Somnolence diurne </label> <label class="flex items-center text-sm"> <input type="checkbox" class="plainte-checkbox mr-2" data-plainte="Fatigue matinale"> Fatigue matinale </label> <label class="flex items-center text-sm"> <input type="checkbox" class="plainte-checkbox mr-2" data-plainte="Céphalées matinales"> Céphalées matinales </label> <label class="flex items-center text-sm"> <input type="checkbox" class="plainte-checkbox mr-2" data-plainte="Nycturie"> Nycturie </label> <label class="flex items-center text-sm"> <input type="checkbox" class="plainte-checkbox mr-2" data-plainte="Troubles de concentration"> Troubles concentration </label> <label class="flex items-center text-sm"> <input type="checkbox" class="plainte-checkbox mr-2" data-plainte="Irritabilité"> Irritabilité </label>
+          </div><textarea id="plaintes" rows="2" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Autres plaintes ou précisions..."></textarea>
+         </div>
+        </div>
+        <div><label for="comorbidites" class="block text-sm font-medium text-gray-700 mb-2">Comorbidités</label>
+         <div class="space-y-2">
+          <div class="grid grid-cols-2 gap-2"><label class="flex items-center text-sm"> <input type="checkbox" class="comorbidite-checkbox mr-2" data-comorbidite="HTA"> HTA </label> <label class="flex items-center text-sm"> <input type="checkbox" class="comorbidite-checkbox mr-2" data-comorbidite="Diabète"> Diabète </label> <label class="flex items-center text-sm"> <input type="checkbox" class="comorbidite-checkbox mr-2" data-comorbidite="Cardiopathie"> Cardiopathie </label> <label class="flex items-center text-sm"> <input type="checkbox" class="comorbidite-checkbox mr-2" data-comorbidite="Arythmie"> Arythmie </label> <label class="flex items-center text-sm"> <input type="checkbox" class="comorbidite-checkbox mr-2" data-comorbidite="AVC/AIT"> AVC/AIT </label> <label class="flex items-center text-sm"> <input type="checkbox" class="comorbidite-checkbox mr-2" data-comorbidite="Dépression"> Dépression </label> <label class="flex items-center text-sm"> <input type="checkbox" class="comorbidite-checkbox mr-2" data-comorbidite="BPCO"> BPCO </label> <label class="flex items-center text-sm"> <input type="checkbox" class="comorbidite-checkbox mr-2" data-comorbidite="Hypothyroïdie"> Hypothyroïdie </label>
+          </div><textarea id="comorbidites" rows="2" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Autres comorbidités ou précisions..."></textarea>
+         </div>
+        </div>
+       </div><!-- Score STOP-BANG -->
+       <div class="bg-yellow-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Score STOP-BANG</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4"><label class="flex items-center"> <input type="checkbox" id="stop-s" class="stop-bang-checkbox mr-2"> <span class="text-sm">Ronflement fort</span> </label> <label class="flex items-center"> <input type="checkbox" id="stop-t" class="stop-bang-checkbox mr-2"> <span class="text-sm">Fatigue/Somnolence</span> </label> <label class="flex items-center"> <input type="checkbox" id="stop-o" class="stop-bang-checkbox mr-2"> <span class="text-sm">Apnées observées</span> </label> <label class="flex items-center"> <input type="checkbox" id="stop-p" class="stop-bang-checkbox mr-2"> <span class="text-sm">HTA</span> </label> <label class="flex items-center"> <input type="checkbox" id="bang-b" class="stop-bang-checkbox mr-2"> <span class="text-sm">IMC &gt; 35</span> </label> <label class="flex items-center"> <input type="checkbox" id="bang-a" class="stop-bang-checkbox mr-2"> <span class="text-sm">Âge &gt; 50 ans</span> </label> <label class="flex items-center"> <input type="checkbox" id="bang-n" class="stop-bang-checkbox mr-2"> <span class="text-sm">Tour de cou élevé</span> </label> <label class="flex items-center"> <input type="checkbox" id="bang-g" class="stop-bang-checkbox mr-2"> <span class="text-sm">Sexe masculin</span> </label>
+        </div>
+        <div class="text-center"><span class="text-lg font-semibold">Score STOP-BANG: </span> <span id="stop-bang-score" class="text-2xl font-bold text-red-600">0</span> <span class="text-sm text-gray-600 ml-2">/8</span>
+        </div><!-- Évaluation de la probabilité -->
+        <div id="stop-bang-evaluation" class="mt-4 p-4 rounded-lg border-2" style="display: none;">
+         <div class="text-center mb-3">
+          <h4 class="text-lg font-semibold text-gray-800">Évaluation du risque d'apnée du sommeil</h4>
+         </div>
+         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div class="text-center">
+           <div class="text-sm text-gray-600 mb-1">
+            Probabilité d'AOS modérée-sévère
+           </div>
+           <div id="prob-moderate-severe" class="text-2xl font-bold">
+            -
+           </div>
+          </div>
+          <div class="text-center">
+           <div class="text-sm text-gray-600 mb-1">
+            Probabilité d'AOS sévère
+           </div>
+           <div id="prob-severe" class="text-2xl font-bold">
+            -
+           </div>
+          </div>
+         </div>
+         <div id="clinical-recommendation" class="bg-white p-3 rounded-lg border">
+          <h5 class="font-semibold text-gray-800 mb-2">Recommandation clinique :</h5>
+          <p id="recommendation-text" class="text-sm text-gray-700"></p>
+         </div>
+         <div class="mt-3 text-xs text-gray-500 text-center">
+          <p>Basé sur les études de validation du score STOP-BANG (Chung et al.)</p>
+         </div>
+        </div>
+        <div class="mt-2 text-center"><button type="button" onclick="autoFillStopBang()" class="px-4 py-2 bg-yellow-600 text-white rounded-md hover:bg-yellow-700 text-sm"> 🔄 Remplissage automatique </button>
+        </div>
+       </div><!-- Échelle de Somnolence Universelle (4 questions) -->
+       <div class="bg-indigo-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Échelle de Somnolence Universelle</h3>
+        <p class="text-sm text-gray-600 mb-4">Évaluez votre sommeil et votre somnolence (0=Jamais/Excellent, 1=Rarement/Bon, 2=Souvent/Moyen, 3=Toujours/Mauvais)</p>
+        <div class="space-y-4">
+         <div class="bg-white p-4 rounded-lg"><label class="block text-sm font-medium text-gray-700 mb-3"> <span class="font-semibold">1. Somnolence pendant la journée</span><br><span class="text-gray-600">Avez-vous envie de dormir ou vous endormez-vous pendant la journée ?</span> </label> <select id="sss-1" class="sss-item w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> <option value="0">0 - Jamais</option> <option value="1">1 - Rarement (1-2 fois/semaine)</option> <option value="2">2 - Souvent (3-5 fois/semaine)</option> <option value="3">3 - Tous les jours</option> </select>
+         </div>
+         <div class="bg-white p-4 rounded-lg"><label class="block text-sm font-medium text-gray-700 mb-3"> <span class="font-semibold">2. Qualité du sommeil nocturne</span><br><span class="text-gray-600">Comment évaluez-vous la qualité de votre sommeil la nuit ?</span> </label> <select id="sss-2" class="sss-item w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> <option value="0">0 - Excellent (sommeil réparateur)</option> <option value="1">1 - Bon (quelques difficultés)</option> <option value="2">2 - Moyen (sommeil perturbé)</option> <option value="3">3 - Mauvais (sommeil non réparateur)</option> </select>
+         </div>
+         <div class="bg-white p-4 rounded-lg"><label class="block text-sm font-medium text-gray-700 mb-3"> <span class="font-semibold">3. Réveils pendant la nuit</span><br><span class="text-gray-600">Vous réveillez-vous pendant la nuit et avez-vous du mal à vous rendormir ?</span> </label> <select id="sss-3" class="sss-item w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> <option value="0">0 - Jamais</option> <option value="1">1 - Rarement (1-2 fois/semaine)</option> <option value="2">2 - Souvent (3-5 fois/semaine)</option> <option value="3">3 - Toutes les nuits</option> </select>
+         </div>
+         <div class="bg-white p-4 rounded-lg"><label class="block text-sm font-medium text-gray-700 mb-3"> <span class="font-semibold">4. Impact sur les activités quotidiennes</span><br><span class="text-gray-600">Votre fatigue/somnolence affecte-t-elle vos activités quotidiennes (travail, famille, loisirs) ?</span> </label> <select id="sss-4" class="sss-item w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> <option value="0">0 - Aucun impact</option> <option value="1">1 - Impact léger</option> <option value="2">2 - Impact modéré</option> <option value="3">3 - Impact sévère</option> </select>
+         </div>
+        </div><!-- Évaluation détaillée de la somnolence -->
+        <div class="mt-6 bg-white p-4 rounded-lg border-2 border-indigo-200">
+         <h4 class="text-md font-semibold text-indigo-800 mb-4">🔍 Évaluation détaillée de la somnolence</h4>
+         <p class="text-sm text-gray-600 mb-4">Évaluez précisément vos sensations et besoins de sommeil</p>
+         <div class="space-y-4"><!-- Sensation de besoin d'endormissement -->
+          <div class="bg-indigo-25 p-3 rounded-lg"><label class="block text-sm font-medium text-gray-700 mb-3"> <span class="font-semibold text-indigo-700">💤 Sensation de besoin d'endormissement</span><br><span class="text-gray-600">Ressentez-vous un besoin irrésistible de dormir pendant la journée ?</span> </label> <select id="besoin-endormissement" class="somnolence-detail w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"> <option value="0">0 - Aucun besoin particulier</option> <option value="1">1 - Sensation légère, facilement contrôlable</option> <option value="2">2 - Besoin modéré, nécessite un effort pour résister</option> <option value="3">3 - Besoin intense, très difficile à contrôler</option> <option value="4">4 - Besoin irrésistible, endormissement involontaire</option> </select>
+          </div><!-- Sieste obligatoire -->
+          <div class="bg-yellow-25 p-3 rounded-lg"><label class="block text-sm font-medium text-gray-700 mb-3"> <span class="font-semibold text-yellow-700">😴 Nécessité de faire la sieste</span><br><span class="text-gray-600">Êtes-vous obligé(e) de faire une sieste pour fonctionner normalement ?</span> </label> <select id="sieste-obligatoire" class="somnolence-detail w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500"> <option value="0">0 - Jamais de sieste nécessaire</option> <option value="1">1 - Sieste occasionnelle, par plaisir</option> <option value="2">2 - Sieste régulière, améliore le confort</option> <option value="3">3 - Sieste quotidienne, indispensable</option> <option value="4">4 - Plusieurs siestes par jour, absolument nécessaires</option> </select>
+          </div><!-- Impact fonctionnel spécifique -->
+          <div class="bg-red-25 p-3 rounded-lg"><label class="block text-sm font-medium text-gray-700 mb-3"> <span class="font-semibold text-red-700">⚠️ Impact fonctionnel critique</span><br><span class="text-gray-600">Votre somnolence compromet-elle votre sécurité ou vos performances ?</span> </label> <select id="impact-critique" class="somnolence-detail w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-red-500 focus:border-red-500"> <option value="0">0 - Aucun impact sur la sécurité</option> <option value="1">1 - Baisse légère de concentration</option> <option value="2">2 - Difficultés au travail ou en conduite</option> <option value="3">3 - Risques de sécurité importants</option> <option value="4">4 - Arrêt d'activités par sécurité</option> </select>
+          </div><!-- Moment de la somnolence -->
+          <div class="bg-green-25 p-3 rounded-lg"><label class="block text-sm font-medium text-gray-700 mb-3"> <span class="font-semibold text-green-700">🕐 Moment de somnolence maximale</span><br><span class="text-gray-600">À quel moment de la journée la somnolence est-elle la plus intense ?</span> </label> <select id="moment-somnolence" class="somnolence-detail w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"> <option value="matin">Matin (réveil difficile, somnolence matinale)</option> <option value="midi">Milieu de journée (après le repas, 13h-15h)</option> <option value="apres-midi">Après-midi (15h-18h)</option> <option value="soiree">Soirée (après 18h)</option> <option value="variable">Variable selon les jours</option> <option value="permanente">Permanente toute la journée</option> </select>
+          </div>
+         </div>
+        </div><!-- Résultat du score -->
+        <div class="text-center bg-white p-4 rounded-lg mt-4">
+         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div><span class="text-lg font-semibold">Score SSU: </span> <span id="sss-score" class="text-3xl font-bold text-indigo-600">0</span> <span class="text-sm text-gray-600 ml-2">/12</span>
+          </div>
+          <div><span class="text-lg font-semibold">Score Détaillé: </span> <span id="somnolence-detail-score" class="text-3xl font-bold text-purple-600">0</span> <span class="text-sm text-gray-600 ml-2">/16</span>
+          </div>
+         </div><!-- Score composite -->
+         <div class="bg-gradient-to-r from-indigo-100 to-purple-100 p-3 rounded-lg mb-4"><span class="text-xl font-bold">Score Composite Total: </span> <span id="score-composite" class="text-4xl font-bold text-gray-800">0</span> <span class="text-sm text-gray-600 ml-2">/28</span>
+         </div><!-- Interprétation -->
+         <div id="sss-interpretation" class="mt-3 p-3 rounded-lg border-2" style="display: none;">
+          <div class="text-center mb-2">
+           <h4 class="text-md font-semibold text-gray-800">Interprétation</h4>
+          </div>
+          <div id="sss-interpretation-text" class="text-sm text-gray-700"></div>
+         </div><!-- Analyse détaillée par domaine -->
+         <div id="sss-analysis" class="mt-4 p-3 bg-gray-50 rounded-lg" style="display: none;">
+          <h5 class="font-semibold text-gray-800 mb-2">Analyse détaillée :</h5>
+          <div id="sss-analysis-content" class="text-sm text-left space-y-1"></div>
+         </div><!-- Évaluation clinique spécialisée -->
+         <div id="evaluation-clinique" class="mt-4 p-4 rounded-lg border-2" style="display: none;">
+          <h5 class="font-semibold text-gray-800 mb-3 text-center">🏥 Évaluation Clinique Spécialisée</h5>
+          <div id="evaluation-clinique-content" class="text-sm text-left space-y-2"></div>
+         </div>
+        </div>
+        <div class="mt-2 text-center"><button type="button" onclick="resetSSS()" class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm"> 🔄 Réinitialiser l'échelle </button>
+        </div>
+       </div><!-- PSG -->
+       <div class="bg-green-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Polysomnographie (PSG)</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+         <div><label for="psg-date" class="block text-sm font-medium text-gray-700 mb-2">Date de réalisation</label> <input type="date" id="psg-date" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+         </div>
+         <div></div>
+        </div><!-- Indices PSG -->
+        <div class="bg-white p-4 rounded-lg mb-4">
+         <h4 class="text-md font-semibold text-gray-700 mb-3">Indices PSG</h4>
+         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div><label for="psg-iah" class="block text-sm font-medium text-gray-700 mb-2">IAH (/h)</label> <input type="number" id="psg-iah" min="0" step="0.1" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Ex: 25.5">
+          </div>
+          <div><label for="psg-itr" class="block text-sm font-medium text-gray-700 mb-2">ITR (/h)</label> <input type="number" id="psg-itr" min="0" step="0.1" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Ex: 30.2">
+          </div>
+          <div><label for="psg-index-desat" class="block text-sm font-medium text-gray-700 mb-2">Index de désaturation (/h)</label> <input type="number" id="psg-index-desat" min="0" step="0.1" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Ex: 18.7">
+          </div>
+         </div>
+        </div><!-- Zone libre -->
+        <div class="bg-white p-4 rounded-lg">
+         <h4 class="text-md font-semibold text-gray-700 mb-3">Zone libre - Autres résultats PSG</h4><textarea id="psg-resultats" rows="4" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Index d'éveil: 15/h, Efficacité du sommeil: 85%, Architecture du sommeil: N1: 10%, N2: 45%, N3: 20%, REM: 25%, Saturation minimale: 82%, Temps passé < 90%: 15min..."></textarea>
+        </div>
+       </div><!-- Prescription PPC -->
+       <div class="bg-purple-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Prescription PPC</h3><label class="flex items-center mb-4"> <input type="checkbox" id="prescription-ppc" class="mr-2"> <span class="text-sm font-medium">Prescription d'une PPC</span> </label>
+       </div><!-- Consultation de contrôle PPC -->
+       <div id="controle-ppc-section" class="bg-orange-50 p-4 rounded-lg" style="display: none;">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Consultation de contrôle PPC</h3><!-- Réglages PPC -->
+        <div class="bg-white p-4 rounded-lg mb-4">
+         <h4 class="text-md font-semibold text-gray-700 mb-3">Réglages PPC</h4>
+         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div><label for="pression-ppc" class="block text-sm font-medium text-gray-700 mb-2">Pression (cmH2O)</label> <input type="number" id="pression-ppc" min="4" max="20" step="0.5" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Ex: 10">
+          </div>
+          <div><label for="humidification" class="block text-sm font-medium text-gray-700 mb-2">Humidification</label> <select id="humidification" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> <option value="">Sélectionner</option> <option value="0">0 (Désactivé)</option> <option value="1">1</option> <option value="2">2</option> <option value="3">3</option> <option value="4">4</option> <option value="5">5 (Maximum)</option> <option value="auto">Auto</option> </select>
+          </div>
+          <div><label for="masque-type" class="block text-sm font-medium text-gray-700 mb-2">Type de masque</label> <select id="masque-type" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> <option value="">Sélectionner</option> <option value="nasal">Nasal</option> <option value="naso-buccal">Naso-buccal</option> <option value="narinaire">Narinaire</option> </select>
+          </div>
+          <div><label for="rampe" class="block text-sm font-medium text-gray-700 mb-2">Rampe (minutes)</label> <select id="rampe" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> <option value="">Sélectionner</option> <option value="0">0 (Désactivé)</option> <option value="5">5 min</option> <option value="10">10 min</option> <option value="15">15 min</option> <option value="20">20 min</option> <option value="30">30 min</option> <option value="45">45 min</option> <option value="60">60 min</option> </select>
+          </div>
+         </div>
+        </div><!-- Résultats PPC (données machine) -->
+        <div class="bg-white p-4 rounded-lg mb-4">
+         <h4 class="text-md font-semibold text-gray-700 mb-3">Résultats PPC (données machine)</h4>
+         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div><label for="iah-residuel" class="block text-sm font-medium text-gray-700 mb-2">IAH résiduel (/h)</label> <input type="number" id="iah-residuel" min="0" step="0.1" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Ex: 2.5">
+          </div>
+          <div><label for="fuites" class="block text-sm font-medium text-gray-700 mb-2">Fuites (L/min)</label> <input type="number" id="fuites" min="0" step="0.1" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Ex: 15.2">
+          </div>
+          <div><label for="usage-moyen" class="block text-sm font-medium text-gray-700 mb-2">Usage moyen (h/nuit)</label> <input type="number" id="usage-moyen" min="0" max="24" step="0.1" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Ex: 6.8">
+          </div>
+          <div><label for="jours-utilisation" class="block text-sm font-medium text-gray-700 mb-2">Jours d'utilisation (%)</label> <input type="number" id="jours-utilisation" min="0" max="100" step="1" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Ex: 85">
+          </div>
+         </div>
+        </div><!-- Évaluation clinique -->
+        <div class="bg-white p-4 rounded-lg mb-4">
+         <h4 class="text-md font-semibold text-gray-700 mb-3">Évaluation clinique</h4>
+         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div><label for="observance" class="block text-sm font-medium text-gray-700 mb-2">Observance</label> <select id="observance" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> <option value="">Sélectionner</option> <option value="excellente">Excellente (&gt;7h/nuit)</option> <option value="bonne">Bonne (5-7h/nuit)</option> <option value="moyenne">Moyenne (3-5h/nuit)</option> <option value="mauvaise">Mauvaise (&lt;3h/nuit)</option> </select>
+          </div>
+          <div><label for="tolerance" class="block text-sm font-medium text-gray-700 mb-2">Tolérance</label> <select id="tolerance" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> <option value="">Sélectionner</option> <option value="excellente">Excellente</option> <option value="bonne">Bonne</option> <option value="moyenne">Moyenne</option> <option value="mauvaise">Mauvaise</option> </select>
+          </div>
+          <div><label for="efficacite" class="block text-sm font-medium text-gray-700 mb-2">Efficacité</label> <select id="efficacite" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"> <option value="">Sélectionner</option> <option value="excellente">Excellente</option> <option value="bonne">Bonne</option> <option value="moyenne">Moyenne</option> <option value="insuffisante">Insuffisante</option> </select>
+          </div>
+         </div>
+         <div><label for="commentaires-controle" class="block text-sm font-medium text-gray-700 mb-2">Commentaires et ajustements</label> <textarea id="commentaires-controle" rows="3" class="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Ajustements réalisés, recommandations, prochaine consultation..."></textarea>
+         </div>
+        </div>
+       </div><!-- Boutons -->
+       <div class="flex justify-end space-x-4 pt-6"><button type="button" onclick="resetForm()" class="px-6 py-3 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-blue-500"> Réinitialiser </button> <button type="submit" id="submit-btn" class="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:ring-2 focus:ring-blue-500"> Enregistrer la consultation </button>
+       </div>
+      </form>
+     </div>
+    </div><!-- Section Liste des Patients -->
+    <div id="section-liste" class="section hidden">
+     <div class="bg-white rounded-lg shadow-md p-6">
+      <div class="flex justify-between items-center mb-6">
+       <h2 class="text-2xl font-bold text-gray-800">Liste des Patients</h2><button onclick="copyToExcel()" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 focus:ring-2 focus:ring-green-500"> 📋 Copier vers Excel </button>
+      </div><!-- Filtres -->
+      <div class="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4"><input type="text" id="filter-nom" placeholder="Filtrer par nom..." class="p-2 border border-gray-300 rounded-md"> <select id="filter-type" class="p-2 border border-gray-300 rounded-md"> <option value="">Tous les types</option> <option value="initiale">Consultation initiale</option> <option value="controle">Contrôle PPC</option> <option value="psg">Résultats PSG</option> </select> <select id="filter-statut" class="p-2 border border-gray-300 rounded-md"> <option value="">Tous les statuts</option> <option value="en_cours">En cours</option> <option value="termine">Terminé</option> </select>
+      </div>
+      <div id="patients-list" class="space-y-4"><!-- Les patients seront affichés ici -->
+      </div>
+     </div>
+    </div><!-- Section Statistiques -->
+    <div id="section-statistiques" class="section hidden">
+     <div class="bg-white rounded-lg shadow-md p-6">
+      <h2 class="text-2xl font-bold text-gray-800 mb-6">Statistiques</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+       <div class="bg-blue-100 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-blue-800">Total Consultations</h3>
+        <p id="stat-total" class="text-3xl font-bold text-blue-600">0</p>
+       </div>
+       <div class="bg-green-100 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-green-800">Ce Mois</h3>
+        <p id="stat-mois" class="text-3xl font-bold text-green-600">0</p>
+       </div>
+       <div class="bg-yellow-100 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-yellow-800">Patients PPC</h3>
+        <p id="stat-ppc" class="text-3xl font-bold text-yellow-600">0</p>
+       </div>
+       <div class="bg-purple-100 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-purple-800">PSG Réalisées</h3>
+        <p id="stat-psg" class="text-3xl font-bold text-purple-600">0</p>
+       </div>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+       <div class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Répartition par type</h3>
+        <div id="chart-types" class="space-y-2"><!-- Graphique simple en barres -->
+        </div>
+       </div>
+       <div class="bg-gray-50 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4">Score STOP-BANG moyen</h3>
+        <div id="chart-stopbang" class="text-center"><span id="moyenne-stopbang" class="text-4xl font-bold text-red-600">0</span>
+         <p class="text-gray-600">Score moyen</p>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </main>
+  </div>
+  <script>
+        // Configuration par défaut
+        const defaultConfig = {
+            app_title: "Gestionnaire Consultations Sommeil",
+            clinic_name: "Centre du Sommeil - Pr ELBIAZE الأستاذ البياز"
+        };
+
+        // Variables globales
+        let consultations = [];
+        let isLoading = false;
+        let editingId = null;
+
+        // Gestionnaire de données
+        const dataHandler = {
+            onDataChanged(data) {
+                consultations = data || [];
+                updatePatientsList();
+                updateStatistics();
+            }
+        };
+
+        // Fonctions de suggestions automatiques
+        function getUniqueMedecins() {
+            const medecins = consultations
+                .map(c => c.medecin_traitant)
+                .filter(m => m && m.trim() !== '')
+                .filter((value, index, self) => self.indexOf(value) === index)
+                .sort();
+            return medecins;
+        }
+
+        function getUniqueVilles() {
+            const villes = consultations
+                .map(c => c.ville)
+                .filter(v => v && v.trim() !== '')
+                .filter((value, index, self) => self.indexOf(value) === index)
+                .sort();
+            return villes;
+        }
+
+        function showSuggestions(inputId, suggestionsId, items, query) {
+            const suggestionsDiv = document.getElementById(suggestionsId);
+            
+            if (!query || query.length < 1) {
+                suggestionsDiv.classList.add('hidden');
+                return;
+            }
+            
+            const filteredItems = items.filter(item => 
+                item.toLowerCase().includes(query.toLowerCase())
+            );
+            
+            if (filteredItems.length === 0) {
+                suggestionsDiv.classList.add('hidden');
+                return;
+            }
+            
+            suggestionsDiv.innerHTML = filteredItems.map(item => `
+                <div class="px-3 py-2 hover:bg-blue-50 cursor-pointer border-b border-gray-100 last:border-b-0" 
+                     onclick="selectSuggestion('${inputId}', '${suggestionsId}', '${item.replace(/'/g, "\\'")}')">
+                    ${item}
+                </div>
+            `).join('');
+            
+            suggestionsDiv.classList.remove('hidden');
+        }
+
+        function selectSuggestion(inputId, suggestionsId, value) {
+            document.getElementById(inputId).value = value;
+            document.getElementById(suggestionsId).classList.add('hidden');
+        }
+
+        function hideSuggestions(suggestionsId) {
+            setTimeout(() => {
+                document.getElementById(suggestionsId).classList.add('hidden');
+            }, 200);
+        }
+
+        // Initialisation des SDKs
+        async function initializeApp() {
+            try {
+                if (window.dataSdk) {
+                    const result = await window.dataSdk.init(dataHandler);
+                    if (!result.isOk) {
+                        console.error("Erreur d'initialisation du SDK de données");
+                    }
+                }
+
+                if (window.elementSdk) {
+                    await window.elementSdk.init({
+                        defaultConfig,
+                        onConfigChange: async (config) => {
+                            document.getElementById('app-title').textContent = config.app_title || defaultConfig.app_title;
+                            document.getElementById('clinic-name').textContent = config.clinic_name || defaultConfig.clinic_name;
+                        },
+                        mapToCapabilities: (config) => ({
+                            recolorables: [],
+                            borderables: [],
+                            fontEditable: undefined,
+                            fontSizeable: undefined
+                        }),
+                        mapToEditPanelValues: (config) => new Map([
+                            ["app_title", config.app_title || defaultConfig.app_title],
+                            ["clinic_name", config.clinic_name || defaultConfig.clinic_name]
+                        ])
+                    });
+                }
+
+                // Initialiser les event listeners pour les suggestions
+                setupSuggestionListeners();
+            } catch (error) {
+                console.error("Erreur lors de l'initialisation:", error);
+            }
+        }
+
+        // Configuration des event listeners pour les suggestions
+        function setupSuggestionListeners() {
+            // Médecin traitant
+            const medecinInput = document.getElementById('medecin-traitant');
+            medecinInput.addEventListener('input', function() {
+                const medecins = getUniqueMedecins();
+                showSuggestions('medecin-traitant', 'medecin-suggestions', medecins, this.value);
+            });
+            
+            medecinInput.addEventListener('blur', function() {
+                hideSuggestions('medecin-suggestions');
+            });
+            
+            medecinInput.addEventListener('focus', function() {
+                if (this.value) {
+                    const medecins = getUniqueMedecins();
+                    showSuggestions('medecin-traitant', 'medecin-suggestions', medecins, this.value);
+                }
+            });
+
+            // Ville
+            const villeInput = document.getElementById('ville');
+            villeInput.addEventListener('input', function() {
+                const villes = getUniqueVilles();
+                showSuggestions('ville', 'ville-suggestions', villes, this.value);
+            });
+            
+            villeInput.addEventListener('blur', function() {
+                hideSuggestions('ville-suggestions');
+            });
+            
+            villeInput.addEventListener('focus', function() {
+                if (this.value) {
+                    const villes = getUniqueVilles();
+                    showSuggestions('ville', 'ville-suggestions', villes, this.value);
+                }
+            });
+
+            // Fermer les suggestions en cliquant ailleurs
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.relative')) {
+                    document.getElementById('medecin-suggestions').classList.add('hidden');
+                    document.getElementById('ville-suggestions').classList.add('hidden');
+                }
+            });
+        }
+
+        // Navigation entre sections
+        function showSection(sectionName) {
+            // Masquer toutes les sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+                section.classList.remove('active');
+            });
+            
+            // Afficher la section demandée
+            const targetSection = document.getElementById(`section-${sectionName}`);
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+                targetSection.classList.add('active');
+            }
+            
+            // Mettre à jour la navigation
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'text-blue-600');
+                btn.classList.add('border-transparent', 'text-gray-500');
+            });
+            
+            if (event && event.target) {
+                event.target.classList.remove('border-transparent', 'text-gray-500');
+                event.target.classList.add('border-blue-500', 'text-blue-600');
+            }
+        }
+
+        // Calculs automatiques
+        function calculateIMC() {
+            const poids = parseFloat(document.getElementById('poids').value) || 0;
+            const taille = parseFloat(document.getElementById('taille').value) || 0;
+            
+            if (poids > 0 && taille > 0) {
+                const tailleM = taille / 100; // Conversion cm en m
+                const imc = poids / (tailleM * tailleM);
+                document.getElementById('imc').value = imc.toFixed(1);
+                
+                // Estimation du tour de cou
+                estimateTourCou(imc);
+                
+                // Mise à jour STOP-BANG
+                updateStopBangScore();
+            } else {
+                document.getElementById('imc').value = '';
+            }
+        }
+
+        function estimateTourCou(imc) {
+            const sexe = document.getElementById('sexe').value;
+            const tourCouInput = document.getElementById('tour-cou');
+            const estimationText = document.getElementById('tour-cou-estimation');
+            
+            // Vérifier si le champ est vide ou contient une estimation précédente (fond jaune)
+            const isEstimated = tourCouInput.style.backgroundColor === 'rgb(254, 243, 199)' || 
+                               tourCouInput.style.backgroundColor === '#fef3c7' ||
+                               estimationText.style.display === 'block';
+            
+            if (sexe && imc > 0 && (!tourCouInput.value || isEstimated)) {
+                let estimation;
+                if (sexe === 'M') {
+                    // Hommes : 35 + (IMC - 25) × 0.8
+                    estimation = 35 + (imc - 25) * 0.8;
+                } else {
+                    // Femmes : 32 + (IMC - 25) × 0.7
+                    estimation = 32 + (imc - 25) * 0.7;
+                }
+                
+                // Limites raisonnables
+                estimation = Math.max(30, Math.min(50, estimation));
+                
+                tourCouInput.value = estimation.toFixed(1);
+                tourCouInput.style.backgroundColor = '#fef3c7'; // Jaune clair
+                estimationText.style.display = 'block';
+                estimationText.textContent = 'Estimation automatique basée sur IMC et sexe';
+            }
+        }
+
+        // Calcul automatique du score STOP-BANG
+        function updateStopBangScore() {
+            const checkboxes = document.querySelectorAll('.stop-bang-checkbox');
+            let score = 0;
+            
+            // Remplissage automatique basé sur les données
+            const sexe = document.getElementById('sexe').value;
+            const age = parseFloat(document.getElementById('patient-age').value) || 0;
+            const imc = parseFloat(document.getElementById('imc').value) || 0;
+            const tourCou = parseFloat(document.getElementById('tour-cou').value) || 0;
+            
+            // Auto-check sexe masculin
+            document.getElementById('bang-g').checked = (sexe === 'M');
+            
+            // Auto-check IMC > 35
+            document.getElementById('bang-b').checked = imc > 35;
+            
+            // Auto-check âge > 50 ans
+            document.getElementById('bang-a').checked = age > 50;
+            
+            // Auto-check tour de cou selon le sexe
+            if (sexe === 'M') {
+                document.getElementById('bang-n').checked = tourCou > 43;
+            } else if (sexe === 'F') {
+                document.getElementById('bang-n').checked = tourCou > 41;
+            }
+            
+            // Calculer le score total
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) score++;
+            });
+            
+            document.getElementById('stop-bang-score').textContent = score;
+            
+            // Évaluer la probabilité d'apnée du sommeil
+            evaluateStopBangProbability(score);
+        }
+
+        // Évaluation de la probabilité d'apnée du sommeil basée sur le score STOP-BANG
+        function evaluateStopBangProbability(score) {
+            const evaluationDiv = document.getElementById('stop-bang-evaluation');
+            const probModerateSevere = document.getElementById('prob-moderate-severe');
+            const probSevere = document.getElementById('prob-severe');
+            const recommendationText = document.getElementById('recommendation-text');
+            const clinicalRecommendation = document.getElementById('clinical-recommendation');
+            
+            if (score === 0) {
+                evaluationDiv.style.display = 'none';
+                return;
+            }
+            
+            evaluationDiv.style.display = 'block';
+            
+            // Probabilités basées sur les études de validation du STOP-BANG
+            let probModSev, probSev, recommendation, riskLevel, borderColor;
+            
+            if (score <= 2) {
+                // Faible risque
+                probModSev = score === 0 ? "5%" : score === 1 ? "15%" : "25%";
+                probSev = score === 0 ? "2%" : score === 1 ? "5%" : "8%";
+                recommendation = "Risque faible d'apnée du sommeil. Surveillance clinique recommandée. Envisager d'autres causes si symptômes persistants.";
+                riskLevel = "Faible";
+                borderColor = "border-green-400";
+                probModerateSevere.className = "text-2xl font-bold text-green-600";
+                probSevere.className = "text-2xl font-bold text-green-600";
+                clinicalRecommendation.className = "bg-green-50 p-3 rounded-lg border border-green-200";
+            } else if (score <= 4) {
+                // Risque intermédiaire
+                probModSev = score === 3 ? "45%" : "65%";
+                probSev = score === 3 ? "15%" : "25%";
+                recommendation = "Risque intermédiaire d'apnée du sommeil. Polysomnographie ou polygraphie ventilatoire recommandée pour confirmer le diagnostic.";
+                riskLevel = "Intermédiaire";
+                borderColor = "border-yellow-400";
+                probModerateSevere.className = "text-2xl font-bold text-yellow-600";
+                probSevere.className = "text-2xl font-bold text-yellow-600";
+                clinicalRecommendation.className = "bg-yellow-50 p-3 rounded-lg border border-yellow-200";
+            } else {
+                // Risque élevé
+                probModSev = score <= 6 ? "80%" : score === 7 ? "90%" : "95%";
+                probSev = score <= 6 ? "40%" : score === 7 ? "60%" : "75%";
+                recommendation = "Risque élevé d'apnée du sommeil sévère. Polysomnographie en urgence recommandée. Envisager un traitement empirique par PPC si délai d'attente prolongé.";
+                riskLevel = "Élevé";
+                borderColor = "border-red-400";
+                probModerateSevere.className = "text-2xl font-bold text-red-600";
+                probSevere.className = "text-2xl font-bold text-red-600";
+                clinicalRecommendation.className = "bg-red-50 p-3 rounded-lg border border-red-200";
+            }
+            
+            // Mise à jour de l'affichage
+            evaluationDiv.className = `mt-4 p-4 rounded-lg border-2 ${borderColor}`;
+            probModerateSevere.textContent = probModSev;
+            probSevere.textContent = probSev;
+            recommendationText.innerHTML = `<strong>Risque ${riskLevel}</strong><br>${recommendation}`;
+            
+            // Ajout d'informations supplémentaires selon le score
+            if (score >= 5) {
+                recommendationText.innerHTML += `<br><br><em>Note : Score ≥5 associé à une forte probabilité d'AOS modérée-sévère. Considérer l'urgence de la prise en charge selon les symptômes cliniques.</em>`;
+            }
+            
+            if (score >= 7) {
+                recommendationText.innerHTML += `<br><br><strong>⚠️ Attention :</strong> Score très élevé. Évaluer les signes de complications cardiovasculaires et la somnolence au volant.`;
+            }
+        }
+
+        // Event listeners pour les calculs automatiques
+        document.getElementById('poids').addEventListener('input', calculateIMC);
+        document.getElementById('taille').addEventListener('input', calculateIMC);
+        document.getElementById('patient-age').addEventListener('input', updateStopBangScore);
+        document.getElementById('sexe').addEventListener('change', function() {
+            const imc = parseFloat(document.getElementById('imc').value) || 0;
+            if (imc > 0) {
+                estimateTourCou(imc);
+            }
+            updateStopBangScore();
+        });
+
+        // Réinitialiser l'estimation quand l'utilisateur modifie manuellement
+        document.getElementById('tour-cou').addEventListener('input', function() {
+            this.style.backgroundColor = '';
+            document.getElementById('tour-cou-estimation').style.display = 'none';
+            updateStopBangScore();
+        });
+
+        // Event listeners pour STOP-BANG
+        document.querySelectorAll('.stop-bang-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', updateStopBangScore);
+        });
+
+        // Event listeners pour l'échelle SSS
+        document.querySelectorAll('.sss-item').forEach(select => {
+            select.addEventListener('change', updateSSSScore);
+        });
+
+        // Event listeners pour l'évaluation détaillée de somnolence
+        document.querySelectorAll('.somnolence-detail').forEach(select => {
+            select.addEventListener('change', updateSomnolenceDetailScore);
+        });
+
+        // Calcul du score SSS
+        function updateSSSScore() {
+            const sssItems = document.querySelectorAll('.sss-item');
+            let totalScore = 0;
+            
+            sssItems.forEach(item => {
+                totalScore += parseInt(item.value) || 0;
+            });
+            
+            document.getElementById('sss-score').textContent = totalScore;
+            
+            // Mettre à jour le score composite
+            updateCompositeScore();
+            
+            // Interprétation du score
+            interpretSSSScore(totalScore);
+        }
+
+        // Calcul du score de somnolence détaillé
+        function updateSomnolenceDetailScore() {
+            const detailItems = document.querySelectorAll('.somnolence-detail');
+            let totalDetailScore = 0;
+            
+            detailItems.forEach(item => {
+                totalDetailScore += parseInt(item.value) || 0;
+            });
+            
+            document.getElementById('somnolence-detail-score').textContent = totalDetailScore;
+            
+            // Mettre à jour le score composite
+            updateCompositeScore();
+            
+            // Interprétation détaillée
+            interpretDetailedSomnolence(totalDetailScore);
+        }
+
+        // Calcul du score composite
+        function updateCompositeScore() {
+            const sssScore = parseInt(document.getElementById('sss-score').textContent) || 0;
+            const detailScore = parseInt(document.getElementById('somnolence-detail-score').textContent) || 0;
+            const compositeScore = sssScore + detailScore;
+            
+            document.getElementById('score-composite').textContent = compositeScore;
+            
+            // Interprétation composite
+            interpretCompositeScore(compositeScore, sssScore, detailScore);
+        }
+
+        // Interprétation du score de somnolence détaillé
+        function interpretDetailedSomnolence(detailScore) {
+            // Cette fonction sera appelée par interpretCompositeScore
+            // pour une analyse intégrée
+        }
+
+        // Interprétation composite complète
+        function interpretCompositeScore(compositeScore, sssScore, detailScore) {
+            const interpretationDiv = document.getElementById('sss-interpretation');
+            const interpretationText = document.getElementById('sss-interpretation-text');
+            const analysisDiv = document.getElementById('sss-analysis');
+            const analysisContent = document.getElementById('sss-analysis-content');
+            const evaluationDiv = document.getElementById('evaluation-clinique');
+            const evaluationContent = document.getElementById('evaluation-clinique-content');
+            
+            if (compositeScore === 0) {
+                interpretationDiv.style.display = 'none';
+                analysisDiv.style.display = 'none';
+                evaluationDiv.style.display = 'none';
+                return;
+            }
+            
+            interpretationDiv.style.display = 'block';
+            analysisDiv.style.display = 'block';
+            evaluationDiv.style.display = 'block';
+            
+            let interpretation, recommendation, borderColor, textColor, urgencyLevel;
+            
+            // Classification basée sur le score composite
+            if (compositeScore <= 5) {
+                // Troubles légers
+                interpretation = "Troubles du sommeil légers";
+                recommendation = "Troubles mineurs du sommeil. Hygiène du sommeil recommandée. Surveillance si symptômes persistent.";
+                borderColor = "border-green-400";
+                textColor = "text-green-700";
+                urgencyLevel = "Surveillance";
+                interpretationDiv.className = `mt-3 p-3 rounded-lg border-2 ${borderColor} bg-green-50`;
+                evaluationDiv.className = `mt-4 p-4 rounded-lg border-2 ${borderColor} bg-green-25`;
+            } else if (compositeScore <= 12) {
+                // Troubles modérés
+                interpretation = "Troubles du sommeil modérés";
+                recommendation = "Troubles significatifs du sommeil. Évaluation médicale recommandée. Rechercher les causes sous-jacentes (apnée du sommeil, insomnie, etc.).";
+                borderColor = "border-yellow-400";
+                textColor = "text-yellow-700";
+                urgencyLevel = "Évaluation recommandée";
+                interpretationDiv.className = `mt-3 p-3 rounded-lg border-2 ${borderColor} bg-yellow-50`;
+                evaluationDiv.className = `mt-4 p-4 rounded-lg border-2 ${borderColor} bg-yellow-25`;
+            } else if (compositeScore <= 20) {
+                // Troubles sévères
+                interpretation = "Troubles du sommeil sévères";
+                recommendation = "Troubles sévères du sommeil avec impact fonctionnel important. Évaluation spécialisée urgente recommandée. Attention aux risques de sécurité (conduite, travail).";
+                borderColor = "border-red-400";
+                textColor = "text-red-700";
+                urgencyLevel = "Évaluation urgente";
+                interpretationDiv.className = `mt-3 p-3 rounded-lg border-2 ${borderColor} bg-red-50`;
+                evaluationDiv.className = `mt-4 p-4 rounded-lg border-2 ${borderColor} bg-red-25`;
+            } else {
+                // Troubles critiques
+                interpretation = "Troubles du sommeil critiques";
+                recommendation = "Troubles critiques avec risque majeur pour la sécurité. Prise en charge immédiate obligatoire. Arrêt temporaire des activités à risque (conduite, machines).";
+                borderColor = "border-red-600";
+                textColor = "text-red-800";
+                urgencyLevel = "URGENCE MÉDICALE";
+                interpretationDiv.className = `mt-3 p-3 rounded-lg border-2 ${borderColor} bg-red-100`;
+                evaluationDiv.className = `mt-4 p-4 rounded-lg border-2 ${borderColor} bg-red-50`;
+            }
+            
+            interpretationText.innerHTML = `
+                <div class="text-center mb-2">
+                    <span class="font-semibold ${textColor}">${interpretation}</span><br>
+                    <span class="text-sm">SSU: ${sssScore}/12 + Détaillé: ${detailScore}/16 = Total: ${compositeScore}/28</span>
+                </div>
+                <p>${recommendation}</p>
+            `;
+            
+            // Analyse détaillée par domaine SSU
+            const domains = [
+                { id: 'sss-1', name: 'Somnolence diurne', threshold: 2 },
+                { id: 'sss-2', name: 'Qualité du sommeil', threshold: 2 },
+                { id: 'sss-3', name: 'Réveils nocturnes', threshold: 2 },
+                { id: 'sss-4', name: 'Impact fonctionnel', threshold: 1 }
+            ];
+            
+            let analysisHTML = '<div class="mb-3"><strong>Analyse SSU :</strong></div>';
+            let problemAreas = [];
+            
+            domains.forEach(domain => {
+                const value = parseInt(document.getElementById(domain.id).value) || 0;
+                let status, statusColor;
+                
+                if (value === 0) {
+                    status = 'Normal';
+                    statusColor = 'text-green-600';
+                } else if (value <= domain.threshold) {
+                    status = 'Léger';
+                    statusColor = 'text-yellow-600';
+                } else {
+                    status = 'Problématique';
+                    statusColor = 'text-red-600';
+                    problemAreas.push(domain.name);
+                }
+                
+                analysisHTML += `<div class="flex justify-between"><span>${domain.name}:</span><span class="${statusColor} font-medium">${status} (${value}/3)</span></div>`;
+            });
+            
+            // Analyse détaillée des critères spécialisés
+            analysisHTML += '<div class="mt-3 mb-2"><strong>Analyse détaillée :</strong></div>';
+            
+            const detailDomains = [
+                { id: 'besoin-endormissement', name: 'Besoin d\'endormissement', threshold: 2 },
+                { id: 'sieste-obligatoire', name: 'Nécessité de sieste', threshold: 2 },
+                { id: 'impact-critique', name: 'Impact critique', threshold: 1 },
+                { id: 'moment-somnolence', name: 'Moment de somnolence', isText: true }
+            ];
+            
+            detailDomains.forEach(domain => {
+                if (domain.isText) {
+                    const value = document.getElementById(domain.id).value;
+                    let interpretation = '';
+                    switch(value) {
+                        case 'matin': interpretation = 'Matinale (possibles troubles du réveil)'; break;
+                        case 'midi': interpretation = 'Post-prandiale (physiologique)'; break;
+                        case 'apres-midi': interpretation = 'Après-midi (fatigue accumulée)'; break;
+                        case 'soiree': interpretation = 'Soirée (possible dette de sommeil)'; break;
+                        case 'variable': interpretation = 'Variable (instabilité circadienne)'; break;
+                        case 'permanente': interpretation = 'Permanente (pathologique)'; break;
+                        default: interpretation = 'Non spécifié';
+                    }
+                    analysisHTML += `<div class="flex justify-between"><span>${domain.name}:</span><span class="text-blue-600 font-medium">${interpretation}</span></div>`;
+                } else {
+                    const value = parseInt(document.getElementById(domain.id).value) || 0;
+                    let status, statusColor;
+                    
+                    if (value === 0) {
+                        status = 'Normal';
+                        statusColor = 'text-green-600';
+                    } else if (value <= domain.threshold) {
+                        status = 'Modéré';
+                        statusColor = 'text-yellow-600';
+                    } else {
+                        status = 'Sévère';
+                        statusColor = 'text-red-600';
+                        problemAreas.push(domain.name);
+                    }
+                    
+                    analysisHTML += `<div class="flex justify-between"><span>${domain.name}:</span><span class="${statusColor} font-medium">${status} (${value}/4)</span></div>`;
+                }
+            });
+            
+            analysisContent.innerHTML = analysisHTML;
+            
+            // Évaluation clinique spécialisée
+            let clinicalHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div class="text-center p-3 bg-white rounded-lg border">
+                        <div class="font-semibold text-gray-700">Niveau d'urgence</div>
+                        <div class="text-lg font-bold ${textColor}">${urgencyLevel}</div>
+                    </div>
+                    <div class="text-center p-3 bg-white rounded-lg border">
+                        <div class="font-semibold text-gray-700">Risque de sécurité</div>
+                        <div class="text-lg font-bold ${compositeScore >= 15 ? 'text-red-600' : compositeScore >= 10 ? 'text-yellow-600' : 'text-green-600'}">
+                            ${compositeScore >= 15 ? 'ÉLEVÉ' : compositeScore >= 10 ? 'MODÉRÉ' : 'FAIBLE'}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Recommandations cliniques spécifiques
+            clinicalHTML += '<div class="text-left"><strong>Recommandations cliniques :</strong><ul class="list-disc list-inside mt-2 space-y-1">';
+            
+            if (problemAreas.includes('Somnolence diurne') || parseInt(document.getElementById('besoin-endormissement').value) >= 3) {
+                clinicalHTML += '<li>Polysomnographie ou polygraphie ventilatoire en priorité</li>';
+            }
+            if (problemAreas.includes('Qualité du sommeil') || parseInt(document.getElementById('sss-2').value) >= 2) {
+                clinicalHTML += '<li>Agenda du sommeil et évaluation de l\'insomnie</li>';
+            }
+            if (parseInt(document.getElementById('sieste-obligatoire').value) >= 3) {
+                clinicalHTML += '<li>Recherche de narcolepsie ou hypersomnie centrale</li>';
+            }
+            if (parseInt(document.getElementById('impact-critique').value) >= 2) {
+                clinicalHTML += '<li>Évaluation immédiate des risques professionnels et de conduite</li>';
+            }
+            if (document.getElementById('moment-somnolence').value === 'permanente') {
+                clinicalHTML += '<li>Bilan métabolique et neurologique complet</li>';
+            }
+            if (compositeScore >= 20) {
+                clinicalHTML += '<li><strong>ARRÊT TEMPORAIRE de la conduite automobile</strong></li>';
+                clinicalHTML += '<li><strong>Aménagement du poste de travail si nécessaire</strong></li>';
+            }
+            
+            clinicalHTML += '</ul></div>';
+            
+            // Pronostic et suivi
+            clinicalHTML += '<div class="mt-4 p-3 bg-gray-50 rounded-lg"><strong>Suivi recommandé :</strong><br>';
+            if (compositeScore <= 5) {
+                clinicalHTML += 'Réévaluation dans 3-6 mois si amélioration de l\'hygiène du sommeil';
+            } else if (compositeScore <= 12) {
+                clinicalHTML += 'Réévaluation dans 1-3 mois après mise en place du traitement';
+            } else if (compositeScore <= 20) {
+                clinicalHTML += 'Suivi spécialisé dans 2-4 semaines, réévaluation mensuelle';
+            } else {
+                clinicalHTML += 'Suivi immédiat et réévaluation hebdomadaire jusqu\'à amélioration significative';
+            }
+            clinicalHTML += '</div>';
+            
+            evaluationContent.innerHTML = clinicalHTML;
+            
+            // Ajout d'informations supplémentaires selon le score
+            if (compositeScore >= 22) {
+                interpretationText.innerHTML += `<br><br><strong>🚨 ALERTE CRITIQUE :</strong> Score extrêmement élevé. Risque majeur pour la sécurité du patient et d'autrui. Prise en charge immédiate obligatoire.`;
+            } else if (compositeScore >= 18) {
+                interpretationText.innerHTML += `<br><br><strong>⚠️ Attention :</strong> Score très élevé. Risque important pour la sécurité. Éviter la conduite automobile et les activités à risque jusqu'à évaluation spécialisée.`;
+            }
+        }
+
+        // Interprétation du score SSS (fonction simplifiée pour compatibilité)
+        function interpretSSSScore(score) {
+            // Cette fonction est maintenant gérée par interpretCompositeScore
+            // Maintenue pour compatibilité avec les appels existants
+        }
+
+        // Réinitialiser l'échelle SSS complète
+        function resetSSS() {
+            // Réinitialiser l'échelle SSU
+            document.querySelectorAll('.sss-item').forEach(item => {
+                item.value = '0';
+            });
+            
+            // Réinitialiser l'évaluation détaillée
+            document.querySelectorAll('.somnolence-detail').forEach(item => {
+                item.value = '0';
+            });
+            
+            // Réinitialiser le moment de somnolence
+            document.getElementById('moment-somnolence').value = 'matin';
+            
+            // Réinitialiser tous les scores
+            document.getElementById('sss-score').textContent = '0';
+            document.getElementById('somnolence-detail-score').textContent = '0';
+            document.getElementById('score-composite').textContent = '0';
+            
+            // Masquer les interprétations
+            document.getElementById('sss-interpretation').style.display = 'none';
+            document.getElementById('sss-analysis').style.display = 'none';
+            document.getElementById('evaluation-clinique').style.display = 'none';
+            
+            showToast("Échelle de somnolence complète réinitialisée", "info");
+        }
+
+        // Event listeners pour les plaintes et comorbidités
+        document.querySelectorAll('.plainte-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', updatePlaintesText);
+        });
+
+        document.querySelectorAll('.comorbidite-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', updateComorbiditesText);
+        });
+
+        // Mise à jour automatique du texte des plaintes
+        function updatePlaintesText() {
+            const checkedPlaintes = Array.from(document.querySelectorAll('.plainte-checkbox:checked'))
+                .map(cb => cb.dataset.plainte);
+            
+            const textarea = document.getElementById('plaintes');
+            const currentText = textarea.value;
+            
+            // Garder le texte personnalisé et ajouter les plaintes cochées
+            const customText = currentText.split('\n').filter(line => 
+                !checkedPlaintes.some(plainte => line.includes(plainte))
+            ).join('\n');
+            
+            const newText = [...checkedPlaintes, customText].filter(Boolean).join(', ');
+            textarea.value = newText;
+            
+            // Remplissage automatique STOP-BANG basé sur les plaintes
+            autoUpdateStopBangFromPlaintes();
+        }
+
+        // Mise à jour automatique du texte des comorbidités
+        function updateComorbiditesText() {
+            const checkedComorbidites = Array.from(document.querySelectorAll('.comorbidite-checkbox:checked'))
+                .map(cb => cb.dataset.comorbidite);
+            
+            const textarea = document.getElementById('comorbidites');
+            const currentText = textarea.value;
+            
+            // Garder le texte personnalisé et ajouter les comorbidités cochées
+            const customText = currentText.split('\n').filter(line => 
+                !checkedComorbidites.some(comorbidite => line.includes(comorbidite))
+            ).join('\n');
+            
+            const newText = [...checkedComorbidites, customText].filter(Boolean).join(', ');
+            textarea.value = newText;
+            
+            // Remplissage automatique STOP-BANG basé sur les comorbidités
+            autoUpdateStopBangFromComorbidites();
+        }
+
+        // Remplissage automatique STOP-BANG basé sur les plaintes
+        function autoUpdateStopBangFromPlaintes() {
+            const checkedPlaintes = Array.from(document.querySelectorAll('.plainte-checkbox:checked'))
+                .map(cb => cb.dataset.plainte);
+            
+            // S - Ronflement fort
+            if (checkedPlaintes.includes('Ronflements')) {
+                document.getElementById('stop-s').checked = true;
+            }
+            
+            // T - Fatigue/Somnolence
+            if (checkedPlaintes.includes('Somnolence diurne') || checkedPlaintes.includes('Fatigue matinale')) {
+                document.getElementById('stop-t').checked = true;
+            }
+            
+            // O - Apnées observées
+            if (checkedPlaintes.includes('Apnées observées')) {
+                document.getElementById('stop-o').checked = true;
+            }
+            
+            updateStopBangScore();
+        }
+
+        // Remplissage automatique STOP-BANG basé sur les comorbidités
+        function autoUpdateStopBangFromComorbidites() {
+            const checkedComorbidites = Array.from(document.querySelectorAll('.comorbidite-checkbox:checked'))
+                .map(cb => cb.dataset.comorbidite);
+            
+            // P - HTA
+            if (checkedComorbidites.includes('HTA')) {
+                document.getElementById('stop-p').checked = true;
+            }
+            
+            updateStopBangScore();
+        }
+
+        // Remplissage automatique complet du STOP-BANG
+        function autoFillStopBang() {
+            // Remplir basé sur les données disponibles
+            const sexe = document.getElementById('sexe').value;
+            const imc = parseFloat(document.getElementById('imc').value) || 0;
+            const tourCou = parseFloat(document.getElementById('tour-cou').value) || 0;
+            
+            // Remplir basé sur les plaintes cochées
+            autoUpdateStopBangFromPlaintes();
+            
+            // Remplir basé sur les comorbidités cochées
+            autoUpdateStopBangFromComorbidites();
+            
+            // B - IMC > 35 (déjà géré dans updateStopBangScore)
+            // A - Âge > 50 ans (nécessiterait un champ âge)
+            // N - Tour de cou élevé (déjà géré dans updateStopBangScore)
+            // G - Sexe masculin (déjà géré dans updateStopBangScore)
+            
+            updateStopBangScore();
+            
+            showToast("STOP-BANG mis à jour automatiquement", "success");
+        }
+
+        // Gestion du formulaire
+        document.getElementById('consultation-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (isLoading) return;
+            
+            // Validation des champs obligatoires
+            const nom = document.getElementById('patient-nom').value.trim();
+            const prenom = document.getElementById('patient-prenom').value.trim();
+            
+            if (!nom || !prenom) {
+                showToast("Le nom et le prénom du patient sont obligatoires", "error");
+                return;
+            }
+            
+            // Vérifier la limite de 999 consultations (seulement pour les nouvelles)
+            if (!editingId && consultations.length >= 999) {
+                showToast("Limite de 999 consultations atteinte. Veuillez supprimer des consultations anciennes.", "error");
+                return;
+            }
+            
+            isLoading = true;
+            const submitBtn = document.getElementById('submit-btn');
+            const originalText = submitBtn.textContent;
+            submitBtn.textContent = editingId ? 'Mise à jour...' : 'Enregistrement...';
+            submitBtn.disabled = true;
+            
+            try {
+                const parentId = document.getElementById('consultation-form').dataset.parentId || "";
+                
+                // Sauvegarder l'état des cases à cocher STOP-BANG
+                const stopBangData = {};
+                document.querySelectorAll('.stop-bang-checkbox').forEach(cb => {
+                    stopBangData[cb.id] = cb.checked;
+                });
+
+                const formData = {
+                    id: editingId || Date.now().toString(),
+                    type: document.getElementById('type-consultation').value,
+                    date: editingId ? (consultations.find(c => c.id === editingId)?.date || new Date().toISOString()) : new Date().toISOString(),
+                    patient_nom: nom,
+                    patient_prenom: prenom,
+                    patient_age: parseInt(document.getElementById('patient-age').value) || 0,
+                    ville: document.getElementById('ville').value || "",
+                    medecin_traitant: document.getElementById('medecin-traitant').value || "",
+                    sexe: document.getElementById('sexe').value || "",
+                    poids: parseFloat(document.getElementById('poids').value) || 0,
+                    taille: parseFloat(document.getElementById('taille').value) || 0,
+                    imc: parseFloat(document.getElementById('imc').value) || 0,
+                    tour_cou: parseFloat(document.getElementById('tour-cou').value) || 0,
+                    plaintes: document.getElementById('plaintes').value || "",
+                    comorbidites: document.getElementById('comorbidites').value || "",
+                    stop_bang_score: parseInt(document.getElementById('stop-bang-score').textContent) || 0,
+                    stop_bang_data: JSON.stringify(stopBangData),
+                    sss_score: parseInt(document.getElementById('sss-score').textContent) || 0,
+                    sss_somnolence: parseInt(document.getElementById('sss-1').value) || 0,
+                    sss_qualite: parseInt(document.getElementById('sss-2').value) || 0,
+                    sss_reveils: parseInt(document.getElementById('sss-3').value) || 0,
+                    sss_impact: parseInt(document.getElementById('sss-4').value) || 0,
+                    somnolence_detail_score: parseInt(document.getElementById('somnolence-detail-score').textContent) || 0,
+                    besoin_endormissement: parseInt(document.getElementById('besoin-endormissement').value) || 0,
+                    sieste_obligatoire: parseInt(document.getElementById('sieste-obligatoire').value) || 0,
+                    impact_critique: parseInt(document.getElementById('impact-critique').value) || 0,
+                    moment_somnolence: document.getElementById('moment-somnolence').value || "matin",
+                    score_composite: parseInt(document.getElementById('score-composite').textContent) || 0,
+                    psg_date: document.getElementById('psg-date').value || "",
+                    psg_iah: parseFloat(document.getElementById('psg-iah').value) || 0,
+                    psg_itr: parseFloat(document.getElementById('psg-itr').value) || 0,
+                    psg_index_desat: parseFloat(document.getElementById('psg-index-desat').value) || 0,
+                    psg_resultats: document.getElementById('psg-resultats').value || "",
+                    prescription_ppc: document.getElementById('prescription-ppc').checked || false,
+                    observance: document.getElementById('observance').value || "",
+                    tolerance: document.getElementById('tolerance').value || "",
+                    efficacite: document.getElementById('efficacite').value || "",
+                    pression_ppc: parseFloat(document.getElementById('pression-ppc')?.value) || 0,
+                    humidification: document.getElementById('humidification')?.value || "",
+                    masque_type: document.getElementById('masque-type')?.value || "",
+                    rampe: parseInt(document.getElementById('rampe')?.value) || 0,
+                    iah_residuel: parseFloat(document.getElementById('iah-residuel')?.value) || 0,
+                    fuites: parseFloat(document.getElementById('fuites')?.value) || 0,
+                    usage_moyen: parseFloat(document.getElementById('usage-moyen')?.value) || 0,
+                    jours_utilisation: parseInt(document.getElementById('jours-utilisation')?.value) || 0,
+                    commentaires_controle: document.getElementById('commentaires-controle')?.value || "",
+                    parent_consultation_id: parentId,
+                    statut: "en_cours"
+                };
+                
+                console.log("Tentative d'enregistrement:", formData);
+                
+                if (window.dataSdk) {
+                    let result;
+                    if (editingId) {
+                        // Mise à jour
+                        const existingConsultation = consultations.find(c => c.id === editingId);
+                        if (existingConsultation) {
+                            result = await window.dataSdk.update({ ...existingConsultation, ...formData });
+                        }
+                    } else {
+                        // Création
+                        result = await window.dataSdk.create(formData);
+                    }
+                    
+                    if (result && result.isOk) {
+                        showToast(editingId ? "Consultation mise à jour avec succès!" : "Consultation enregistrée avec succès!", "success");
+                        resetFormAfterEdit();
+                        // Rediriger vers la liste des patients
+                        setTimeout(() => {
+                            showSection('liste');
+                        }, 1000);
+                    } else {
+                        console.error("Erreur SDK:", result?.error);
+                        showToast("Erreur lors de l'enregistrement: " + (result?.error?.message || "Erreur inconnue"), "error");
+                    }
+                } else {
+                    console.error("SDK non disponible");
+                    showToast("Erreur: SDK de données non disponible", "error");
+                }
+            } catch (error) {
+                console.error("Erreur lors de l'enregistrement:", error);
+                showToast("Erreur lors de l'enregistrement: " + error.message, "error");
+            } finally {
+                isLoading = false;
+                submitBtn.textContent = originalText;
+                submitBtn.disabled = false;
+            }
+        });
+
+        // Réinitialiser le formulaire
+        function resetForm() {
+            document.getElementById('consultation-form').reset();
+            document.getElementById('stop-bang-score').textContent = '0';
+            document.getElementById('controle-ppc-section').style.display = 'none';
+            document.getElementById('imc').value = '';
+            document.getElementById('tour-cou').style.backgroundColor = '';
+            document.getElementById('tour-cou-estimation').style.display = 'none';
+            
+            // Réinitialiser les checkboxes
+            document.querySelectorAll('.plainte-checkbox').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.comorbidite-checkbox').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.stop-bang-checkbox').forEach(cb => cb.checked = false);
+            
+            // Réinitialiser l'échelle SSS
+            document.querySelectorAll('.sss-item').forEach(item => item.value = '0');
+            document.getElementById('sss-score').textContent = '0';
+            document.getElementById('sss-interpretation').style.display = 'none';
+            document.getElementById('sss-analysis').style.display = 'none';
+            
+            editingId = null;
+            delete document.getElementById('consultation-form').dataset.parentId;
+            document.getElementById('submit-btn').textContent = 'Enregistrer la consultation';
+        }
+
+        // Réinitialiser le formulaire après modification
+        function resetFormAfterEdit() {
+            resetForm();
+        }
+
+        // Afficher/masquer la section contrôle PPC
+        document.getElementById('type-consultation').addEventListener('change', function() {
+            const controleSection = document.getElementById('controle-ppc-section');
+            if (this.value === 'controle') {
+                controleSection.style.display = 'block';
+            } else {
+                controleSection.style.display = 'none';
+            }
+        });
+
+        // Mise à jour de la liste des patients
+        function updatePatientsList() {
+            const container = document.getElementById('patients-list');
+            const filterNom = document.getElementById('filter-nom')?.value.toLowerCase() || '';
+            const filterType = document.getElementById('filter-type')?.value || '';
+            const filterStatut = document.getElementById('filter-statut')?.value || '';
+            
+            let filteredConsultations = consultations.filter(consultation => {
+                const matchNom = consultation.patient_nom.toLowerCase().includes(filterNom) || 
+                                consultation.patient_prenom.toLowerCase().includes(filterNom);
+                const matchType = !filterType || consultation.type === filterType;
+                const matchStatut = !filterStatut || consultation.statut === filterStatut;
+                
+                return matchNom && matchType && matchStatut;
+            });
+            
+            if (filteredConsultations.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">Aucune consultation trouvée</p>';
+                return;
+            }
+            
+            container.innerHTML = filteredConsultations.map(consultation => `
+                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <h3 class="text-lg font-semibold text-gray-800">
+                                ${consultation.patient_prenom} ${consultation.patient_nom}
+                            </h3>
+                            <p class="text-sm text-gray-600">
+                                ${consultation.type === 'initiale' ? 'Consultation initiale' : 
+                                  consultation.type === 'controle' ? 'Contrôle PPC' : 'Résultats PSG'}
+                            </p>
+                            <p class="text-sm text-gray-500">
+                                ${new Date(consultation.date).toLocaleDateString('fr-FR')}
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            <span class="inline-block px-2 py-1 text-xs rounded-full ${
+                                consultation.statut === 'termine' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                            }">
+                                ${consultation.statut === 'termine' ? 'Terminé' : 'En cours'}
+                            </span>
+                            <div class="mt-2 space-x-2">
+                                <button onclick="viewConsultation('${consultation.id}')" class="text-blue-600 hover:text-blue-800 text-sm">
+                                    Voir
+                                </button>
+                                <button onclick="editConsultation('${consultation.id}')" class="text-green-600 hover:text-green-800 text-sm">
+                                    Modifier
+                                </button>
+                                ${consultation.type === 'initiale' && consultation.prescription_ppc ? 
+                                    `<button onclick="addPPCControl('${consultation.id}')" class="text-purple-600 hover:text-purple-800 text-sm">+ Contrôle PPC</button>` : ''}
+                                <button onclick="deleteConsultation('${consultation.id}')" class="text-red-600 hover:text-red-800 text-sm">
+                                    Supprimer
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3 grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+                        <div>
+                            <span class="font-medium">Sexe:</span> ${consultation.sexe === 'M' ? 'M' : consultation.sexe === 'F' ? 'F' : 'N/A'}
+                        </div>
+                        <div>
+                            <span class="font-medium">IMC:</span> ${consultation.imc || 'N/A'}
+                        </div>
+                        <div>
+                            <span class="font-medium">STOP-BANG:</span> ${consultation.stop_bang_score}/8
+                        </div>
+                        <div>
+                            <span class="font-medium">SSS:</span> ${consultation.sss_score || 0}/12
+                        </div>
+                        <div>
+                            <span class="font-medium">PPC:</span> ${consultation.prescription_ppc ? 'Oui' : 'Non'}
+                        </div>
+                        <div>
+                            <span class="font-medium">Ville:</span> ${consultation.ville || 'N/A'}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Modifier une consultation existante
+        function editConsultation(id) {
+            const consultation = consultations.find(c => c.id === id);
+            if (!consultation) return;
+            
+            editingId = id;
+            
+            // Remplir le formulaire avec les données existantes
+            document.getElementById('type-consultation').value = consultation.type;
+            document.getElementById('patient-nom').value = consultation.patient_nom;
+            document.getElementById('patient-prenom').value = consultation.patient_prenom;
+            document.getElementById('patient-age').value = consultation.patient_age || '';
+            document.getElementById('ville').value = consultation.ville || '';
+            document.getElementById('medecin-traitant').value = consultation.medecin_traitant || '';
+            document.getElementById('sexe').value = consultation.sexe || '';
+            document.getElementById('poids').value = consultation.poids || '';
+            document.getElementById('taille').value = consultation.taille || '';
+            document.getElementById('imc').value = consultation.imc || '';
+            document.getElementById('tour-cou').value = consultation.tour_cou || '';
+            document.getElementById('plaintes').value = consultation.plaintes || '';
+            document.getElementById('comorbidites').value = consultation.comorbidites || '';
+            
+            // Restaurer les données SSS
+            document.getElementById('sss-1').value = consultation.sss_somnolence || '0';
+            document.getElementById('sss-2').value = consultation.sss_qualite || '0';
+            document.getElementById('sss-3').value = consultation.sss_reveils || '0';
+            document.getElementById('sss-4').value = consultation.sss_impact || '0';
+            
+            // Restaurer les données de somnolence détaillée
+            document.getElementById('besoin-endormissement').value = consultation.besoin_endormissement || '0';
+            document.getElementById('sieste-obligatoire').value = consultation.sieste_obligatoire || '0';
+            document.getElementById('impact-critique').value = consultation.impact_critique || '0';
+            document.getElementById('moment-somnolence').value = consultation.moment_somnolence || 'matin';
+            
+            document.getElementById('psg-date').value = consultation.psg_date || '';
+            document.getElementById('psg-iah').value = consultation.psg_iah || '';
+            document.getElementById('psg-itr').value = consultation.psg_itr || '';
+            document.getElementById('psg-index-desat').value = consultation.psg_index_desat || '';
+            document.getElementById('psg-resultats').value = consultation.psg_resultats || '';
+            document.getElementById('prescription-ppc').checked = consultation.prescription_ppc || false;
+            
+            // Restaurer les cases à cocher des plaintes
+            document.querySelectorAll('.plainte-checkbox').forEach(cb => cb.checked = false);
+            if (consultation.plaintes) {
+                document.querySelectorAll('.plainte-checkbox').forEach(cb => {
+                    if (consultation.plaintes.includes(cb.dataset.plainte)) {
+                        cb.checked = true;
+                    }
+                });
+            }
+            
+            // Restaurer les cases à cocher des comorbidités
+            document.querySelectorAll('.comorbidite-checkbox').forEach(cb => cb.checked = false);
+            if (consultation.comorbidites) {
+                document.querySelectorAll('.comorbidite-checkbox').forEach(cb => {
+                    if (consultation.comorbidites.includes(cb.dataset.comorbidite)) {
+                        cb.checked = true;
+                    }
+                });
+            }
+            
+            // Restaurer les cases à cocher STOP-BANG
+            document.querySelectorAll('.stop-bang-checkbox').forEach(cb => cb.checked = false);
+            if (consultation.stop_bang_data) {
+                const stopBangData = JSON.parse(consultation.stop_bang_data);
+                Object.keys(stopBangData).forEach(key => {
+                    const checkbox = document.getElementById(key);
+                    if (checkbox) {
+                        checkbox.checked = stopBangData[key];
+                    }
+                });
+            }
+            
+            // Données PPC si disponibles
+            if (consultation.pression_ppc) document.getElementById('pression-ppc').value = consultation.pression_ppc;
+            if (consultation.humidification) document.getElementById('humidification').value = consultation.humidification;
+            if (consultation.masque_type) document.getElementById('masque-type').value = consultation.masque_type;
+            if (consultation.rampe) document.getElementById('rampe').value = consultation.rampe;
+            if (consultation.iah_residuel) document.getElementById('iah-residuel').value = consultation.iah_residuel;
+            if (consultation.fuites) document.getElementById('fuites').value = consultation.fuites;
+            if (consultation.usage_moyen) document.getElementById('usage-moyen').value = consultation.usage_moyen;
+            if (consultation.jours_utilisation) document.getElementById('jours-utilisation').value = consultation.jours_utilisation;
+            if (consultation.observance) document.getElementById('observance').value = consultation.observance;
+            if (consultation.tolerance) document.getElementById('tolerance').value = consultation.tolerance;
+            if (consultation.efficacite) document.getElementById('efficacite').value = consultation.efficacite;
+            if (consultation.commentaires_controle) document.getElementById('commentaires-controle').value = consultation.commentaires_controle;
+            
+            // Afficher la section contrôle PPC si nécessaire
+            if (consultation.type === 'controle') {
+                document.getElementById('controle-ppc-section').style.display = 'block';
+            }
+            
+            // Recalculer les scores
+            updateStopBangScore();
+            updateSSSScore();
+            updateSomnolenceDetailScore();
+            
+            // Modifier le bouton de soumission pour la mise à jour
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.textContent = 'Mettre à jour la consultation';
+            
+            // Aller à la section nouvelle consultation
+            showSection('nouvelle');
+            
+            showToast("Consultation chargée pour modification", "info");
+        }
+
+        // Ajouter un contrôle PPC à une consultation existante
+        async function addPPCControl(parentId) {
+            const parentConsultation = consultations.find(c => c.id === parentId);
+            if (!parentConsultation) return;
+            
+            // Vérifier la limite
+            if (consultations.length >= 999) {
+                showToast("Limite de 999 consultations atteinte. Veuillez supprimer des consultations anciennes.", "error");
+                return;
+            }
+            
+            // Pré-remplir le formulaire avec les données du patient
+            resetForm();
+            document.getElementById('type-consultation').value = 'controle';
+            document.getElementById('patient-nom').value = parentConsultation.patient_nom;
+            document.getElementById('patient-prenom').value = parentConsultation.patient_prenom;
+            document.getElementById('patient-age').value = parentConsultation.patient_age || '';
+            document.getElementById('ville').value = parentConsultation.ville || '';
+            document.getElementById('medecin-traitant').value = parentConsultation.medecin_traitant || '';
+            document.getElementById('sexe').value = parentConsultation.sexe || '';
+            document.getElementById('poids').value = parentConsultation.poids || '';
+            document.getElementById('taille').value = parentConsultation.taille || '';
+            
+            // Recalculer IMC et scores
+            calculateIMC();
+            
+            // Afficher la section contrôle PPC
+            document.getElementById('controle-ppc-section').style.display = 'block';
+            
+            // Modifier le formulaire pour indiquer qu'il s'agit d'un contrôle lié
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.textContent = 'Enregistrer le contrôle PPC';
+            
+            // Stocker l'ID parent pour la soumission
+            document.getElementById('consultation-form').dataset.parentId = parentId;
+            
+            // Aller à la section nouvelle consultation
+            showSection('nouvelle');
+            
+            showToast(`Nouveau contrôle PPC pour ${parentConsultation.patient_prenom} ${parentConsultation.patient_nom}`, "info");
+        }
+
+        // Voir une consultation
+        function viewConsultation(id) {
+            const consultation = consultations.find(c => c.id === id);
+            if (!consultation) return;
+            
+            // Créer une fenêtre modale pour afficher les détails
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+            modal.innerHTML = `
+                <div class="bg-white rounded-lg max-w-4xl w-full max-h-full overflow-y-auto">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-bold text-gray-800">
+                                Consultation - ${consultation.patient_prenom} ${consultation.patient_nom}
+                            </h2>
+                            <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700">
+                                ✕
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h3 class="font-semibold text-gray-800 mb-2">Informations patient</h3>
+                                <p><strong>Nom:</strong> ${consultation.patient_nom}</p>
+                                <p><strong>Prénom:</strong> ${consultation.patient_prenom}</p>
+                                <p><strong>Âge:</strong> ${consultation.patient_age || 'N/A'} ans</p>
+                                <p><strong>Sexe:</strong> ${consultation.sexe === 'M' ? 'Masculin' : consultation.sexe === 'F' ? 'Féminin' : 'N/A'}</p>
+                                <p><strong>Ville:</strong> ${consultation.ville || 'N/A'}</p>
+                                <p><strong>Médecin traitant:</strong> ${consultation.medecin_traitant || 'N/A'}</p>
+                                <p><strong>Date:</strong> ${new Date(consultation.date).toLocaleDateString('fr-FR')}</p>
+                            </div>
+                            
+                            <div>
+                                <h3 class="font-semibold text-gray-800 mb-2">Mesures anthropométriques</h3>
+                                <p><strong>Poids:</strong> ${consultation.poids || 'N/A'} kg</p>
+                                <p><strong>Taille:</strong> ${consultation.taille || 'N/A'} cm</p>
+                                <p><strong>IMC:</strong> ${consultation.imc || 'N/A'} kg/m²</p>
+                                <p><strong>Tour de cou:</strong> ${consultation.tour_cou || 'N/A'} cm</p>
+                                <p><strong>Score STOP-BANG:</strong> ${consultation.stop_bang_score}/8</p>
+                                <p><strong>Score SSS:</strong> ${consultation.sss_score || 0}/12</p>
+                            </div>
+                            
+                            <div class="md:col-span-2">
+                                <h3 class="font-semibold text-gray-800 mb-2">Plaintes</h3>
+                                <p class="bg-gray-50 p-3 rounded">${consultation.plaintes || 'Aucune'}</p>
+                            </div>
+                            
+                            <div class="md:col-span-2">
+                                <h3 class="font-semibold text-gray-800 mb-2">Comorbidités</h3>
+                                <p class="bg-gray-50 p-3 rounded">${consultation.comorbidites || 'Aucune'}</p>
+                            </div>
+                            
+                            ${consultation.psg_date ? `
+                                <div class="md:col-span-2">
+                                    <h3 class="font-semibold text-gray-800 mb-2">PSG</h3>
+                                    <p><strong>Date:</strong> ${new Date(consultation.psg_date).toLocaleDateString('fr-FR')}</p>
+                                    ${consultation.psg_iah || consultation.psg_itr || consultation.psg_index_desat ? `
+                                        <div class="bg-gray-50 p-3 rounded mt-2 grid grid-cols-3 gap-2 text-sm">
+                                            ${consultation.psg_iah ? `<p><strong>IAH:</strong> ${consultation.psg_iah}/h</p>` : ''}
+                                            ${consultation.psg_itr ? `<p><strong>ITR:</strong> ${consultation.psg_itr}/h</p>` : ''}
+                                            ${consultation.psg_index_desat ? `<p><strong>Index désaturation:</strong> ${consultation.psg_index_desat}/h</p>` : ''}
+                                        </div>
+                                    ` : ''}
+                                    ${consultation.psg_resultats ? `<p class="bg-gray-50 p-3 rounded mt-2">${consultation.psg_resultats}</p>` : ''}
+                                </div>
+                            ` : ''}
+                            
+                            ${consultation.prescription_ppc ? `
+                                <div class="md:col-span-2">
+                                    <h3 class="font-semibold text-gray-800 mb-2">PPC</h3>
+                                    <p><strong>Prescription:</strong> Oui</p>
+                                    ${consultation.observance ? `<p><strong>Observance:</strong> ${consultation.observance}</p>` : ''}
+                                    ${consultation.tolerance ? `<p><strong>Tolérance:</strong> ${consultation.tolerance}</p>` : ''}
+                                    ${consultation.efficacite ? `<p><strong>Efficacité:</strong> ${consultation.efficacite}</p>` : ''}
+                                </div>
+                            ` : ''}
+                            
+                            ${consultation.type === 'controle' && consultation.pression_ppc ? `
+                                <div class="md:col-span-2">
+                                    <h3 class="font-semibold text-gray-800 mb-2">Réglages PPC</h3>
+                                    <div class="bg-gray-50 p-3 rounded grid grid-cols-2 gap-2 text-sm">
+                                        <p><strong>Pression:</strong> ${consultation.pression_ppc} cmH2O</p>
+                                        <p><strong>Humidification:</strong> ${consultation.humidification || 'N/A'}</p>
+                                        <p><strong>Masque:</strong> ${consultation.masque_type || 'N/A'}</p>
+                                        <p><strong>Rampe:</strong> ${consultation.rampe || 'N/A'} min</p>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            ${consultation.type === 'controle' && consultation.iah_residuel ? `
+                                <div class="md:col-span-2">
+                                    <h3 class="font-semibold text-gray-800 mb-2">Résultats PPC</h3>
+                                    <div class="bg-gray-50 p-3 rounded grid grid-cols-2 gap-2 text-sm">
+                                        <p><strong>IAH résiduel:</strong> ${consultation.iah_residuel}/h</p>
+                                        <p><strong>Fuites:</strong> ${consultation.fuites} L/min</p>
+                                        <p><strong>Usage moyen:</strong> ${consultation.usage_moyen}h/nuit</p>
+                                        <p><strong>Jours d'utilisation:</strong> ${consultation.jours_utilisation}%</p>
+                                    </div>
+                                </div>
+                            ` : ''}
+                            
+                            ${consultation.commentaires_controle ? `
+                                <div class="md:col-span-2">
+                                    <h3 class="font-semibold text-gray-800 mb-2">Commentaires contrôle</h3>
+                                    <p class="bg-gray-50 p-3 rounded">${consultation.commentaires_controle}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        // Supprimer une consultation
+        async function deleteConsultation(id) {
+            const consultation = consultations.find(c => c.id === id);
+            if (!consultation) return;
+            
+            // Confirmation inline
+            const confirmBtn = event.target;
+            const originalText = confirmBtn.textContent;
+            confirmBtn.textContent = 'Confirmer?';
+            confirmBtn.className = 'text-red-800 hover:text-red-900 text-sm font-bold';
+            
+            setTimeout(() => {
+                confirmBtn.textContent = originalText;
+                confirmBtn.className = 'text-red-600 hover:text-red-800 text-sm';
+            }, 3000);
+            
+            confirmBtn.onclick = async function() {
+                if (window.dataSdk) {
+                    const result = await window.dataSdk.delete(consultation);
+                    if (result.isOk) {
+                        showToast("Consultation supprimée", "success");
+                    } else {
+                        showToast("Erreur lors de la suppression", "error");
+                    }
+                }
+            };
+        }
+
+        // Mise à jour des statistiques
+        function updateStatistics() {
+            const total = consultations.length;
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            
+            const thisMonth = consultations.filter(c => {
+                const date = new Date(c.date);
+                return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+            }).length;
+            
+            const ppcPatients = consultations.filter(c => c.prescription_ppc).length;
+            const psgRealized = consultations.filter(c => c.psg_date).length;
+            
+            document.getElementById('stat-total').textContent = total;
+            document.getElementById('stat-mois').textContent = thisMonth;
+            document.getElementById('stat-ppc').textContent = ppcPatients;
+            document.getElementById('stat-psg').textContent = psgRealized;
+            
+            // Score STOP-BANG moyen
+            const validScores = consultations.filter(c => c.stop_bang_score > 0);
+            const moyenneStopBang = validScores.length > 0 ? 
+                (validScores.reduce((sum, c) => sum + c.stop_bang_score, 0) / validScores.length).toFixed(1) : 0;
+            document.getElementById('moyenne-stopbang').textContent = moyenneStopBang;
+            
+            // Graphique des types
+            const types = {
+                'initiale': consultations.filter(c => c.type === 'initiale').length,
+                'controle': consultations.filter(c => c.type === 'controle').length,
+                'psg': consultations.filter(c => c.type === 'psg').length
+            };
+            
+            const chartTypes = document.getElementById('chart-types');
+            chartTypes.innerHTML = Object.entries(types).map(([type, count]) => {
+                const percentage = total > 0 ? (count / total * 100) : 0;
+                const label = type === 'initiale' ? 'Initiales' : 
+                             type === 'controle' ? 'Contrôles PPC' : 'Résultats PSG';
+                return `
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm">${label}</span>
+                        <div class="flex items-center">
+                            <div class="w-20 bg-gray-200 rounded-full h-2 mr-2">
+                                <div class="bg-blue-600 h-2 rounded-full" style="width: ${percentage}%"></div>
+                            </div>
+                            <span class="text-sm font-medium">${count}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Copier vers Excel
+        function copyToExcel() {
+            if (consultations.length === 0) {
+                showToast("Aucune donnée à copier", "error");
+                return;
+            }
+            
+            // Créer le contenu tabulé pour Excel
+            const headers = [
+                'Date', 'Type', 'Nom', 'Prénom', 'Âge', 'Sexe', 'Poids (kg)', 'Taille (cm)', 'IMC', 
+                'Tour de cou', 'STOP-BANG', 'SSS', 'PSG IAH', 'PSG ITR', 'PSG Index Désat', 
+                'Ville', 'Médecin traitant', 'PPC', 'Statut'
+            ];
+            
+            const tabContent = [
+                headers.join('\t'),
+                ...consultations.map(c => [
+                    new Date(c.date).toLocaleDateString('fr-FR'),
+                    c.type === 'initiale' ? 'Consultation initiale' : 
+                    c.type === 'controle' ? 'Contrôle PPC' : 'Résultats PSG',
+                    c.patient_nom,
+                    c.patient_prenom,
+                    c.patient_age || '',
+                    c.sexe === 'M' ? 'Masculin' : c.sexe === 'F' ? 'Féminin' : '',
+                    c.poids || '',
+                    c.taille || '',
+                    c.imc || '',
+                    c.tour_cou || '',
+                    c.stop_bang_score || '',
+                    c.sss_score || '',
+                    c.psg_iah || '',
+                    c.psg_itr || '',
+                    c.psg_index_desat || '',
+                    c.ville || '',
+                    c.medecin_traitant || '',
+                    c.prescription_ppc ? 'Oui' : 'Non',
+                    c.statut === 'termine' ? 'Terminé' : 'En cours'
+                ].join('\t'))
+            ].join('\n');
+            
+            // Copier dans le presse-papiers
+            navigator.clipboard.writeText(tabContent).then(() => {
+                showToast("Données copiées ! Collez dans Excel avec Ctrl+V", "success");
+            }).catch(() => {
+                // Fallback pour les navigateurs plus anciens
+                const textArea = document.createElement('textarea');
+                textArea.value = tabContent;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showToast("Données copiées ! Collez dans Excel avec Ctrl+V", "success");
+            });
+        }
+
+        // Filtres
+        document.getElementById('filter-nom')?.addEventListener('input', updatePatientsList);
+        document.getElementById('filter-type')?.addEventListener('change', updatePatientsList);
+        document.getElementById('filter-statut')?.addEventListener('change', updatePatientsList);
+
+        // Toast notifications
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg text-white ${
+                type === 'success' ? 'bg-green-500' : 
+                type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+            }`;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99a7c40fc22f3740',t:'MTc2MjQ2NTQwMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
